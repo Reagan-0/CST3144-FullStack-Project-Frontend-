@@ -1,7 +1,7 @@
 // Auto-detect environment: use localhost for development, Render URL for production
 var apiUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? "http://localhost:5000"
-  : "https://your-backend-url.onrender.com"; // TODO: Replace with your actual Render backend URL
+  : "https://cst3144-fullstack-project-backend.onrender.com/"; // TODO: Replace with your actual Render backend URL
 
 let webstore = new Vue({
     el: '#webstore',
