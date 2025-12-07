@@ -45,7 +45,11 @@
                     </div>
                 </div>
                 
-                <div v-for="lesson in products" :key="lesson.id" class="lesson-card">
+                <div class="lessons-container">
+                    <div v-for="lesson in products" :key="lesson.id" class="lesson-card">
+                    <figure class="lesson-icon">
+                        <i :class="getIconClass(lesson)"></i>
+                    </figure>
                     <h3>{{lesson.name}}</h3>
                     <p>Location: {{lesson.locat}}</p>
                     <p>Price: ${{lesson.price}}</p>
@@ -57,6 +61,7 @@
                         Add to Cart
                     </button>
                     <span v-else>All out!</span>
+                    </div>
                 </div>
             </div>
             
@@ -70,7 +75,14 @@
                         <h3>{{item.name}}</h3>
                         <p>Location: {{item.locat}}</p>
                         <p>Price: ${{item.price}}</p>
-                        <button v-on:click="removeFromCartById(item.id)">Remove</button>
+                        <p><strong>Quantity:</strong> {{item.quantity}}</p>
+                        <p><strong>Subtotal:</strong> ${{(item.price * item.quantity).toFixed(2)}}</p>
+                        <div class="qty-controls">
+                            <button v-on:click="decreaseQty(item.id)">−</button>
+                            <span>{{item.quantity}}</span>
+                            <button v-on:click="increaseQty(item.id)" :disabled="item.spaces === 0">+</button>
+                        </div>
+                        <button v-on:click="removeFromCartById(item.id)">Remove All</button>
                     </div>
                     
                     <div class="checkout-form">
@@ -82,7 +94,8 @@
                                     type="text" 
                                     id="firstName"
                                     v-model="order.firstName" 
-                                    placeholder="Enter your name"
+                                    @input="validateCheckout"
+                                    placeholder="Enter your name (letters only)"
                                 />
                             </div>
                             <div>
@@ -91,10 +104,11 @@
                                     type="text" 
                                     id="phone"
                                     v-model="order.phone" 
-                                    placeholder="Enter your phone number"
+                                    @input="validateCheckout"
+                                    placeholder="Enter your phone number (numbers only)"
                                 />
                             </div>
-                            <button type="button" v-on:click="submitCheckOut">Submit Order</button>
+                            <button type="button" :disabled="!canCheckout" v-on:click="submitCheckOut">Submit Order</button>
                         </form>
                     </div>
                 </div>

@@ -1,4 +1,7 @@
-var apiUrl = "http://localhost:3000";
+// Auto-detect environment: use localhost for development, Render URL for production
+var apiUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? "http://localhost:5000"
+  : "https://your-backend-url.onrender.com"; // TODO: Replace with your actual Render backend URL
 
 let webstore = new Vue({
     el: '#webstore',
@@ -15,7 +18,16 @@ let webstore = new Vue({
         sortDirection: 'Ascending',
         searchText: '',
         isSearching: false,
-        searchResults: []
+        searchResults: [],
+        canCheckout: false
+    },
+    watch: {
+        'order.firstName': function() {
+            this.validateCheckout();
+        },
+        'order.phone': function() {
+            this.validateCheckout();
+        }
     },
     created() {
         fetch(apiUrl + "/lessons")
@@ -103,20 +115,59 @@ let webstore = new Vue({
             return lesson.spaces > 0;
         },
         removeFromCartById(lessonId) {
-            var index = this.cart.indexOf(lessonId);
-            if (index > -1) {
-                this.cart.splice(index, 1);
-                var product = this.products.find(p => p.id === lessonId);
-                if (product) {
-                    product.spaces++;
-                    product.taken--;
-                }
+            // Remove all instances of this lesson from cart
+            var lesson = this.products.find(p => p.id === lessonId);
+            if (lesson) {
+                var count = this.cart.filter(id => id === lessonId).length;
+                this.cart = this.cart.filter(id => id !== lessonId);
+                lesson.spaces += count;
+                lesson.taken -= count;
             }
         },
         getCartItems() {
-            return this.cart.map(cartId => {
-                return this.products.find(p => p.id === cartId);
-            }).filter(item => item !== undefined);
+            // Count occurrences of each lesson ID in cart
+            var cartCounts = {};
+            this.cart.forEach(id => {
+                cartCounts[id] = (cartCounts[id] || 0) + 1;
+            });
+            
+            // Return unique items with quantities
+            var uniqueItems = [];
+            var seenIds = new Set();
+            
+            this.cart.forEach(cartId => {
+                if (!seenIds.has(cartId)) {
+                    seenIds.add(cartId);
+                    var lesson = this.products.find(p => p.id === cartId);
+                    if (lesson) {
+                        uniqueItems.push({
+                            ...lesson,
+                            quantity: cartCounts[cartId]
+                        });
+                    }
+                }
+            });
+            
+            return uniqueItems;
+        },
+        increaseQty(lessonId) {
+            var lesson = this.products.find(p => p.id === lessonId);
+            if (lesson && lesson.spaces > 0) {
+                this.cart.push(lessonId);
+                lesson.spaces--;
+                lesson.taken++;
+            }
+        },
+        decreaseQty(lessonId) {
+            var index = this.cart.indexOf(lessonId);
+            if (index > -1) {
+                this.cart.splice(index, 1);
+                var lesson = this.products.find(p => p.id === lessonId);
+                if (lesson) {
+                    lesson.spaces++;
+                    lesson.taken--;
+                }
+            }
         },
         validateForm() {
             var nameRegex = /^[A-Za-z\s]+$/;
@@ -144,6 +195,41 @@ let webstore = new Vue({
             
             return true;
         },
+        validateCheckout() {
+            var nameRegex = /^[A-Za-z\s]+$/;
+            var phoneRegex = /^[0-9]+$/;
+            
+            // Check if fields are empty
+            if (this.order.firstName.trim() === '' || this.order.phone.trim() === '') {
+                this.canCheckout = false;
+                return false;
+            }
+            
+            // Validate name (letters and spaces only)
+            if (!nameRegex.test(this.order.firstName.trim())) {
+                this.canCheckout = false;
+                return false;
+            }
+            
+            // Validate phone (numbers only)
+            if (!phoneRegex.test(this.order.phone.trim())) {
+                this.canCheckout = false;
+                return false;
+            }
+            
+            // Both validations passed
+            this.canCheckout = true;
+            return true;
+        },
+        getIconClass(lesson) {
+            // Use icon from database if available, otherwise use default
+            if (lesson.icon) {
+                return lesson.icon;
+            }
+            
+            // Fallback to default icon if not stored in database
+            return 'fa-solid fa-graduation-cap';
+        },
         submitCheckOut() {
             if (!this.validateForm()) {
                 return;
@@ -154,14 +240,20 @@ let webstore = new Vue({
                 return;
             }
             
+            // Count quantities for each lesson ID
+            var cartCounts = {};
+            this.cart.forEach(id => {
+                cartCounts[id] = (cartCounts[id] || 0) + 1;
+            });
+            
+            // Create order data with quantities
             var orderData = {
                 name: this.order.firstName,
                 phone: this.order.phone,
-                lessonIDs: this.cart.map(id => {
-                    var lesson = this.products.find(p => p.id === id);
+                lessonIDs: Object.keys(cartCounts).map(id => {
                     return {
                         id: id,
-                        spaces: 1
+                        spaces: cartCounts[id]
                     };
                 })
             };
