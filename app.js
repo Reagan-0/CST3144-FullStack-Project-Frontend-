@@ -12,7 +12,10 @@ let webstore = new Vue({
             phone: ""
         },
         sortBy: 'name',
-        sortDirection: 'Ascending'
+        sortDirection: 'Ascending',
+        searchText: '',
+        isSearching: false,
+        searchResults: []
     },
     created() {
         fetch(apiUrl + "/lessons")
@@ -51,6 +54,35 @@ let webstore = new Vue({
                 return 0;
             });
             this.sortDirection = isAscending ? 'Descending' : 'Ascending';
+        },
+        doSearch() {
+            var text = this.searchText.trim();
+            if (text.length >= 1) {
+                this.isSearching = true;
+                fetch(apiUrl + "/search?query=" + text)
+                .then(response => response.json())
+                .then(res => {
+                    webstore.searchResults = res;
+                    webstore.products = res.map(lesson => ({
+                        ...lesson,
+                        taken: lesson.taken || 0,
+                        initspace: lesson.initspace || lesson.spaces || 0
+                    }));
+                })
+                .catch(error => console.log('Error :', error));
+            } else {
+                this.isSearching = false;
+                fetch(apiUrl + "/lessons")
+                .then(response => response.json())
+                .then(res => {
+                    webstore.products = res.map(lesson => ({
+                        ...lesson,
+                        taken: lesson.taken || 0,
+                        initspace: lesson.initspace || lesson.spaces || 0
+                    }));
+                })
+                .catch(error => console.log('Error :', error));
+            }
         }
     }
 });
