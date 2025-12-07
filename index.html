@@ -72,6 +72,30 @@
                         <p>Price: ${{item.price}}</p>
                         <button v-on:click="removeFromCartById(item.id)">Remove</button>
                     </div>
+                    
+                    <div class="checkout-form">
+                        <h3>Checkout</h3>
+                        <form>
+                            <div>
+                                <label for="firstName">Name:</label>
+                                <input 
+                                    type="text" 
+                                    id="firstName"
+                                    v-model="order.firstName" 
+                                    placeholder="Enter your name"
+                                />
+                            </div>
+                            <div>
+                                <label for="phone">Phone:</label>
+                                <input 
+                                    type="text" 
+                                    id="phone"
+                                    v-model="order.phone" 
+                                    placeholder="Enter your phone number"
+                                />
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </main>

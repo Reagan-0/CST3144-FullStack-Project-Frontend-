@@ -117,6 +117,32 @@ let webstore = new Vue({
             return this.cart.map(cartId => {
                 return this.products.find(p => p.id === cartId);
             }).filter(item => item !== undefined);
+        },
+        validateForm() {
+            var nameRegex = /^[A-Za-z\s]+$/;
+            var phoneRegex = /^[0-9]+$/;
+            
+            if (!nameRegex.test(this.order.firstName)) {
+                alert('Name must contain only letters and spaces');
+                return false;
+            }
+            
+            if (!phoneRegex.test(this.order.phone)) {
+                alert('Phone must contain only numbers');
+                return false;
+            }
+            
+            if (this.order.firstName.trim() === '') {
+                alert('Name is required');
+                return false;
+            }
+            
+            if (this.order.phone.trim() === '') {
+                alert('Phone is required');
+                return false;
+            }
+            
+            return true;
         }
     },
     computed: {
