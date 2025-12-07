@@ -35,6 +35,7 @@ let webstore = new Vue({
         .then(res => {
             webstore.products = res.map(lesson => ({
                 ...lesson,
+                id: lesson._id || lesson.id, // Ensure consistent id field
                 taken: lesson.taken || 0,
                 initspace: lesson.initspace || lesson.spaces || 0
             }));
@@ -97,11 +98,27 @@ let webstore = new Vue({
             }
         },
         addItemtoCart(lesson) {
-            this.cart.push(lesson.id);
-            var product = this.products.find(p => p.id === lesson.id);
+            // Ensure we have a consistent ID
+            var lessonId = lesson.id || lesson._id;
+            if (!lessonId) {
+                console.error('Lesson has no ID:', lesson);
+                return;
+            }
+            
+            // Convert to string for consistent comparison
+            lessonId = String(lessonId);
+            
+            this.cart.push(lessonId);
+            var product = this.products.find(p => {
+                var productId = String(p.id || p._id);
+                return productId === lessonId;
+            });
+            
             if (product) {
                 product.spaces--;
                 product.taken++;
+            } else {
+                console.error('Product not found for ID:', lessonId);
             }
         },
         showCheckOut() {
@@ -116,10 +133,14 @@ let webstore = new Vue({
         },
         removeFromCartById(lessonId) {
             // Remove all instances of this lesson from cart
-            var lesson = this.products.find(p => p.id === lessonId);
+            var lessonIdStr = String(lessonId);
+            var lesson = this.products.find(p => {
+                var productId = String(p.id || p._id);
+                return productId === lessonIdStr;
+            });
             if (lesson) {
-                var count = this.cart.filter(id => id === lessonId).length;
-                this.cart = this.cart.filter(id => id !== lessonId);
+                var count = this.cart.filter(id => String(id) === lessonIdStr).length;
+                this.cart = this.cart.filter(id => String(id) !== lessonIdStr);
                 lesson.spaces += count;
                 lesson.taken -= count;
             }
@@ -128,7 +149,8 @@ let webstore = new Vue({
             // Count occurrences of each lesson ID in cart
             var cartCounts = {};
             this.cart.forEach(id => {
-                cartCounts[id] = (cartCounts[id] || 0) + 1;
+                var idStr = String(id);
+                cartCounts[idStr] = (cartCounts[idStr] || 0) + 1;
             });
             
             // Return unique items with quantities
@@ -136,13 +158,17 @@ let webstore = new Vue({
             var seenIds = new Set();
             
             this.cart.forEach(cartId => {
-                if (!seenIds.has(cartId)) {
-                    seenIds.add(cartId);
-                    var lesson = this.products.find(p => p.id === cartId);
+                var cartIdStr = String(cartId);
+                if (!seenIds.has(cartIdStr)) {
+                    seenIds.add(cartIdStr);
+                    var lesson = this.products.find(p => {
+                        var productId = String(p.id || p._id);
+                        return productId === cartIdStr;
+                    });
                     if (lesson) {
                         uniqueItems.push({
                             ...lesson,
-                            quantity: cartCounts[cartId]
+                            quantity: cartCounts[cartIdStr]
                         });
                     }
                 }
@@ -151,18 +177,26 @@ let webstore = new Vue({
             return uniqueItems;
         },
         increaseQty(lessonId) {
-            var lesson = this.products.find(p => p.id === lessonId);
+            var lessonIdStr = String(lessonId);
+            var lesson = this.products.find(p => {
+                var productId = String(p.id || p._id);
+                return productId === lessonIdStr;
+            });
             if (lesson && lesson.spaces > 0) {
-                this.cart.push(lessonId);
+                this.cart.push(lessonIdStr);
                 lesson.spaces--;
                 lesson.taken++;
             }
         },
         decreaseQty(lessonId) {
-            var index = this.cart.indexOf(lessonId);
+            var lessonIdStr = String(lessonId);
+            var index = this.cart.findIndex(id => String(id) === lessonIdStr);
             if (index > -1) {
                 this.cart.splice(index, 1);
-                var lesson = this.products.find(p => p.id === lessonId);
+                var lesson = this.products.find(p => {
+                    var productId = String(p.id || p._id);
+                    return productId === lessonIdStr;
+                });
                 if (lesson) {
                     lesson.spaces++;
                     lesson.taken--;
@@ -243,7 +277,8 @@ let webstore = new Vue({
             // Count quantities for each lesson ID
             var cartCounts = {};
             this.cart.forEach(id => {
-                cartCounts[id] = (cartCounts[id] || 0) + 1;
+                var idStr = String(id);
+                cartCounts[idStr] = (cartCounts[idStr] || 0) + 1;
             });
             
             // Create order data with quantities
@@ -266,7 +301,7 @@ let webstore = new Vue({
             .then(response => response.json())
             .then(res => {
                 var updates = this.products.map(lesson => ({
-                    id: lesson.id || lesson._id,
+                    id: String(lesson.id || lesson._id),
                     spaces: lesson.spaces,
                     taken: lesson.taken || 0
                 }));
