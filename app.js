@@ -101,6 +101,22 @@ let webstore = new Vue({
         },
         canAddtoCart(lesson) {
             return lesson.spaces > 0;
+        },
+        removeFromCartById(lessonId) {
+            var index = this.cart.indexOf(lessonId);
+            if (index > -1) {
+                this.cart.splice(index, 1);
+                var product = this.products.find(p => p.id === lessonId);
+                if (product) {
+                    product.spaces++;
+                    product.taken--;
+                }
+            }
+        },
+        getCartItems() {
+            return this.cart.map(cartId => {
+                return this.products.find(p => p.id === cartId);
+            }).filter(item => item !== undefined);
         }
     },
     computed: {
