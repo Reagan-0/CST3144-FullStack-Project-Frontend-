@@ -18,6 +18,18 @@
         <main>
             <div v-if="showProduct">
                 <h2>Available Lessons</h2>
+                
+                <div class="controls">
+                    <label>Sort by: </label>
+                    <select v-model="sortBy">
+                        <option value="name">Subject</option>
+                        <option value="locat">Location</option>
+                        <option value="price">Price</option>
+                        <option value="spaces">Spaces</option>
+                    </select>
+                    <button v-on:click="doSort">{{sortDirection}}</button>
+                </div>
+
                 <div v-for="lesson in products" :key="lesson.id" class="lesson-card">
                     <h3>{{lesson.name}}</h3>
                     <p>Location: {{lesson.locat}}</p>
