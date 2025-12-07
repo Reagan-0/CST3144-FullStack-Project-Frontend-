@@ -1,6 +1,6 @@
 var apiUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? "http://localhost:5000"
-  : "https://cst3144-fullstack-project-backend.onrender.com/";
+  : "https://cst3144-fullstack-project-backend.onrender.com";
 
 let webstore = new Vue({
     el: '#webstore',
