@@ -143,6 +143,71 @@ let webstore = new Vue({
             }
             
             return true;
+        },
+        submitCheckOut() {
+            if (!this.validateForm()) {
+                return;
+            }
+            
+            if (this.cart.length === 0) {
+                alert('Your cart is empty');
+                return;
+            }
+            
+            var orderData = {
+                name: this.order.firstName,
+                phone: this.order.phone,
+                lessonIDs: this.cart.map(id => {
+                    var lesson = this.products.find(p => p.id === id);
+                    return {
+                        id: id,
+                        spaces: 1
+                    };
+                })
+            };
+            
+            fetch(apiUrl + "/order", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            })
+            .then(response => response.json())
+            .then(res => {
+                var updates = this.products.map(lesson => ({
+                    id: lesson.id || lesson._id,
+                    spaces: lesson.spaces,
+                    taken: lesson.taken || 0
+                }));
+                
+                return fetch(apiUrl + "/lessons", {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+            })
+            .then(response => response.json())
+            .then(res => {
+                alert("Order has been submitted successfully!");
+                
+                this.cart = [];
+                this.order.firstName = '';
+                this.order.phone = '';
+                this.showProduct = true;
+                
+                return fetch(apiUrl + "/lessons");
+            })
+            .then(response => response.json())
+            .then(res => {
+                webstore.products = res.map(lesson => ({
+                    ...lesson,
+                    taken: lesson.taken || 0,
+                    initspace: lesson.initspace || lesson.spaces || 0
+                }));
+            })
+            .catch(error => {
+                console.log('Error:', error);
+                alert('Error submitting order');
+            });
         }
     },
     computed: {
