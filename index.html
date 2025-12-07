@@ -12,6 +12,11 @@
     <div id="webstore">
         <header>
             <h1>{{message}}</h1>
+            <button v-on:click="showCheckOut">
+                {{itemInCart}}
+                <span class="fa-solid fa-cart-plus"></span>
+                Check Out
+            </button>
         </header>
         
         <main>
@@ -45,6 +50,13 @@
                     <p>Location: {{lesson.locat}}</p>
                     <p>Price: ${{lesson.price}}</p>
                     <p>Spaces: {{lesson.spaces}}</p>
+                    <button 
+                        v-if="canAddtoCart(lesson)" 
+                        v-on:click="addItemtoCart(lesson)"
+                    >
+                        Add to Cart
+                    </button>
+                    <span v-else>All out!</span>
                 </div>
             </div>
         </main>

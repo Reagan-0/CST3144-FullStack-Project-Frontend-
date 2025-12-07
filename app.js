@@ -83,6 +83,29 @@ let webstore = new Vue({
                 })
                 .catch(error => console.log('Error :', error));
             }
+        },
+        addItemtoCart(lesson) {
+            this.cart.push(lesson.id);
+            var product = this.products.find(p => p.id === lesson.id);
+            if (product) {
+                product.spaces--;
+                product.taken++;
+            }
+        },
+        showCheckOut() {
+            if(this.showProduct) {
+                this.showProduct = false;
+            } else {
+                this.showProduct = true;
+            }
+        },
+        canAddtoCart(lesson) {
+            return lesson.spaces > 0;
+        }
+    },
+    computed: {
+        itemInCart: function() {
+            return this.cart.length || "";
         }
     }
 });
