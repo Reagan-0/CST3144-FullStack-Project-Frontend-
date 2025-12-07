@@ -1,7 +1,6 @@
-// Auto-detect environment: use localhost for development, Render URL for production
 var apiUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? "http://localhost:5000"
-  : "https://cst3144-fullstack-project-backend.onrender.com/"; // TODO: Replace with your actual Render backend URL
+  : "https://cst3144-fullstack-project-backend.onrender.com/";
 
 let webstore = new Vue({
     el: '#webstore',
@@ -35,7 +34,7 @@ let webstore = new Vue({
         .then(res => {
             webstore.products = res.map(lesson => ({
                 ...lesson,
-                id: lesson._id || lesson.id, // Ensure consistent id field
+                id: lesson._id || lesson.id,
                 taken: lesson.taken || 0,
                 initspace: lesson.initspace || lesson.spaces || 0
             }));
@@ -98,14 +97,12 @@ let webstore = new Vue({
             }
         },
         addItemtoCart(lesson) {
-            // Ensure we have a consistent ID
             var lessonId = lesson.id || lesson._id;
             if (!lessonId) {
                 console.error('Lesson has no ID:', lesson);
                 return;
             }
             
-            // Convert to string for consistent comparison
             lessonId = String(lessonId);
             
             this.cart.push(lessonId);
@@ -132,7 +129,6 @@ let webstore = new Vue({
             return lesson.spaces > 0;
         },
         removeFromCartById(lessonId) {
-            // Remove all instances of this lesson from cart
             var lessonIdStr = String(lessonId);
             var lesson = this.products.find(p => {
                 var productId = String(p.id || p._id);
@@ -146,14 +142,12 @@ let webstore = new Vue({
             }
         },
         getCartItems() {
-            // Count occurrences of each lesson ID in cart
             var cartCounts = {};
             this.cart.forEach(id => {
                 var idStr = String(id);
                 cartCounts[idStr] = (cartCounts[idStr] || 0) + 1;
             });
             
-            // Return unique items with quantities
             var uniqueItems = [];
             var seenIds = new Set();
             
@@ -233,35 +227,29 @@ let webstore = new Vue({
             var nameRegex = /^[A-Za-z\s]+$/;
             var phoneRegex = /^[0-9]+$/;
             
-            // Check if fields are empty
             if (this.order.firstName.trim() === '' || this.order.phone.trim() === '') {
                 this.canCheckout = false;
                 return false;
             }
             
-            // Validate name (letters and spaces only)
             if (!nameRegex.test(this.order.firstName.trim())) {
                 this.canCheckout = false;
                 return false;
             }
             
-            // Validate phone (numbers only)
             if (!phoneRegex.test(this.order.phone.trim())) {
                 this.canCheckout = false;
                 return false;
             }
             
-            // Both validations passed
             this.canCheckout = true;
             return true;
         },
         getIconClass(lesson) {
-            // Use icon from database if available, otherwise use default
             if (lesson.icon) {
                 return lesson.icon;
             }
             
-            // Fallback to default icon if not stored in database
             return 'fa-solid fa-graduation-cap';
         },
         submitCheckOut() {
@@ -274,14 +262,12 @@ let webstore = new Vue({
                 return;
             }
             
-            // Count quantities for each lesson ID
             var cartCounts = {};
             this.cart.forEach(id => {
                 var idStr = String(id);
                 cartCounts[idStr] = (cartCounts[idStr] || 0) + 1;
             });
             
-            // Create order data with quantities
             var orderData = {
                 name: this.order.firstName,
                 phone: this.order.phone,
