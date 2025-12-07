@@ -12,6 +12,20 @@ let webstore = new Vue({
             firstName: "",
             phone: ""
         }
+    },
+    created() {
+        fetch(apiUrl + "/lessons")
+        .then(response => response.json())
+        .then(res => {
+            webstore.products = res.map(lesson => ({
+                ...lesson,
+                taken: lesson.taken || 0,
+                initspace: lesson.initspace || lesson.spaces || 0
+            }));
+            console.log(webstore.products)
+        })
+        .catch(error => console.log('Error :', error))
+        .finally(() => console.log('Fetch request completed'))
     }
 });
 
